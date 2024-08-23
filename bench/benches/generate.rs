@@ -1,6 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use std::collections::HashMap;
-use tinyjson::JsonValue;
+use tinyjson::{JsonMap, JsonValue};
 
 fn generate(c: &mut Criterion) {
     c.bench_function("generate::string", |b| {
@@ -36,7 +35,7 @@ fn generate(c: &mut Criterion) {
         });
     });
     c.bench_function("generate::object", |b| {
-        let mut kv = HashMap::new();
+        let mut kv = JsonMap::new();
         kv.insert("num".into(), 123.45.into());
         kv.insert("bool".into(), true.into());
         kv.insert("str".into(), "this is test".to_string().into());

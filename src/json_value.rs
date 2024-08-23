@@ -1,12 +1,22 @@
 use crate::generator::{format, stringify, JsonGenerateResult, JsonGenerator};
 use crate::query::{JsonQuery, JsonQueryMut};
-use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::fmt;
 use std::io;
 use std::ops::{Index, IndexMut};
 
+#[cfg(feature = "ordered-map")]
+use indexmap::IndexMap;
+#[cfg(not(feature = "ordered-map"))]
+use std::collections::HashMap;
+
 const NULL: () = ();
+
+#[cfg(feature = "ordered-map")]
+pub type JsonMap = IndexMap<String, JsonValue>;
+#[cfg(not(feature = "ordered-map"))]
+pub type JsonMap = HashMap<String, JsonValue>;
+
 
 /// Enum to represent one JSON value. Each variant represents corresponding JSON types.
 /// ```
@@ -42,7 +52,7 @@ pub enum JsonValue {
     /// Array type value.
     Array(Vec<JsonValue>),
     /// Object type value.
-    Object(HashMap<String, JsonValue>),
+    Object(JsonMap),
 }
 
 /// Trait to access to inner value of `JsonValue` as reference.
@@ -71,7 +81,7 @@ impl_inner_ref!(bool, Boolean(b) => b);
 impl_inner_ref!(String, String(s) => s);
 impl_inner_ref!((), Null => &NULL);
 impl_inner_ref!(Vec<JsonValue>, Array(a) => a);
-impl_inner_ref!(HashMap<String, JsonValue>, Object(h) => h);
+impl_inner_ref!(JsonMap, Object(h) => h);
 
 /// Trait to access to inner value of `JsonValue` as mutable reference.
 ///
@@ -98,7 +108,7 @@ impl_inner_ref_mut!(f64, Number(n) => n);
 impl_inner_ref_mut!(bool, Boolean(b) => b);
 impl_inner_ref_mut!(String, String(s) => s);
 impl_inner_ref_mut!(Vec<JsonValue>, Array(a) => a);
-impl_inner_ref_mut!(HashMap<String, JsonValue>, Object(h) => h);
+impl_inner_ref_mut!(JsonMap, Object(h) => h);
 
 // Note: matches! is available from Rust 1.42
 macro_rules! is_xxx {
@@ -241,16 +251,15 @@ impl JsonValue {
         /// allows to write `if` guard if you use Rust 1.42.0 or later.
         ///
         /// ```
-        /// use tinyjson::JsonValue;
-        /// use std::collections::HashMap;
+        /// use tinyjson::{JsonMap, JsonValue};
         ///
-        /// let v = JsonValue::from(HashMap::new());
+        /// let v = JsonValue::from(JsonMap::new());
         /// assert!(v.is_object());
         /// let v = JsonValue::from(vec![]);
         /// assert!(!v.is_object());
         ///
         /// // matches! macro may be better choice
-        /// let mut m = HashMap::new();
+        /// let mut m = JsonMap::new();
         /// m.insert("hello".to_string(), "world".to_string().into());
         /// let v = JsonValue::from(m);
         /// assert!(matches!(&v, JsonValue::Object(o) if o.contains_key("hello")));
@@ -388,10 +397,9 @@ impl JsonValue {
 /// Access the element value of the key of object.
 ///
 /// ```
-/// use tinyjson::JsonValue;
-/// use std::collections::HashMap;
+/// use tinyjson::{JsonMap, JsonValue};
 ///
-/// let mut m = HashMap::new();
+/// let mut m = JsonMap::new();
 /// m.insert("foo".to_string(), 1.0.into());
 /// let v = JsonValue::from(m);
 /// let i = &v["foo"];
@@ -409,9 +417,8 @@ impl JsonValue {
 /// or when the key does not exist in the object.
 ///
 /// ```should_panic
-/// # use tinyjson::JsonValue;
-/// # use std::collections::HashMap;
-/// let v = JsonValue::from(HashMap::new());
+/// # use tinyjson::{JsonMap, JsonValue};
+/// let v = JsonValue::from(JsonMap::new());
 /// let _ = &v["foo"]; // Panic
 /// ```
 ///
@@ -465,9 +472,8 @@ impl<'a> Index<&'a str> for JsonValue {
 /// Like standard containers such as `Vec` or `HashMap`, it will panic when the given `JsonValue` value is not an array
 ///
 /// ```should_panic
-/// # use tinyjson::JsonValue;
-/// use std::collections::HashMap;
-/// let v = JsonValue::from(HashMap::new());
+/// # use tinyjson::{JsonMap, JsonValue};
+/// let v = JsonValue::from(JsonMap::new());
 /// let _ = &v[0]; // Panic
 /// ```
 ///
@@ -496,10 +502,9 @@ impl Index<usize> for JsonValue {
 /// Access the element value of the key of mutable object.
 ///
 /// ```
-/// use tinyjson::JsonValue;
-/// use std::collections::HashMap;
+/// use tinyjson::{JsonMap, JsonValue};
 ///
-/// let mut m = HashMap::new();
+/// let mut m = JsonMap::new();
 /// m.insert("foo".to_string(), 1.0.into());
 /// let mut v = JsonValue::from(m);
 /// v["foo"] = JsonValue::Number(3.14);
@@ -517,9 +522,8 @@ impl Index<usize> for JsonValue {
 /// or when the key does not exist in the object.
 ///
 /// ```should_panic
-/// # use tinyjson::JsonValue;
-/// # use std::collections::HashMap;
-/// let mut v = JsonValue::from(HashMap::new());
+/// # use tinyjson::{JsonMap, JsonValue};
+/// let mut v = JsonValue::from(JsonMap::new());
 /// let _ = &mut v["foo"]; // Panic
 /// ```
 ///
@@ -572,9 +576,8 @@ impl<'a> IndexMut<&'a str> for JsonValue {
 /// Like standard containers such as `Vec` or `HashMap`, it will panic when the given `JsonValue` value is not an array
 ///
 /// ```should_panic
-/// # use tinyjson::JsonValue;
-/// use std::collections::HashMap;
-/// let mut v = JsonValue::from(HashMap::new());
+/// # use tinyjson::{JsonMap, JsonValue};
+/// let mut v = JsonValue::from(JsonMap::new());
 /// let _ = &mut v[0]; // Panic
 /// ```
 ///
@@ -666,17 +669,16 @@ impl_from!(
     a: Vec<JsonValue> => Array(a)
 );
 impl_from!(
-    /// Convert `HashMap` value into `JsonValue`.
+    /// Convert `JsonMap` value into `JsonValue`.
     ///
     /// ```
-    /// use tinyjson::JsonValue;
-    /// use std::collections::HashMap;
-    /// let mut m = HashMap::new();
+    /// use tinyjson::{JsonMap, JsonValue};
+    /// let mut m = JsonMap::new();
     /// m.insert("foo".to_string(), 1.0.into());
     /// let v = JsonValue::from(m);
     /// assert!(v.is_object());
     /// ```
-    o: HashMap<String, JsonValue> => Object(o)
+    o: JsonMap => Object(o)
 );
 
 /// Error caused when trying to convert `JsonValue` into some wrong type value.
@@ -855,24 +857,23 @@ impl_try_from!(
     Vec<JsonValue>,
 );
 impl_try_from!(
-    /// Try to convert the `JsonValue` value into `HashMap<String, JsonValue>`. `UnexpectedValue` error happens when
+    /// Try to convert the `JsonValue` value into `JsonMap`. `UnexpectedValue` error happens when
     /// trying to convert an incorrect type value.
     ///
     /// ```
-    /// use tinyjson::JsonValue;
+    /// use tinyjson::{JsonMap, JsonValue};
     /// use std::convert::TryFrom;
-    /// use std::collections::HashMap;
     ///
-    /// let mut m = HashMap::new();
+    /// let mut m = JsonMap::new();
     /// m.insert("foo".to_string(), 42.0.into());
     /// let v = JsonValue::from(m);
-    /// let r = <HashMap<_, _>>::try_from(v);
+    /// let r = <JsonMap>::try_from(v);
     /// assert!(r.is_ok());
     ///
     /// let v = JsonValue::from(1.0);
-    /// let r = <HashMap<_, _>>::try_from(v);
+    /// let r = <JsonMap>::try_from(v);
     /// assert!(r.is_err());
     /// ```
     JsonValue::Object(o) => o,
-    HashMap<String, JsonValue>,
+    JsonMap,
 );

@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use tinyjson::*;
 
 #[test]
@@ -111,11 +110,11 @@ fn test_query_object_key() {
     );
     assert_eq!(
         v.query().child("a").child("d").find().unwrap(),
-        &JsonValue::Object(HashMap::new()),
+        &JsonValue::Object(JsonMap::new()),
     );
     assert_eq!(
         v.query().child("e").find().unwrap(),
-        &JsonValue::Object(HashMap::new()),
+        &JsonValue::Object(JsonMap::new()),
     );
 
     assert_eq!(
@@ -155,11 +154,11 @@ fn test_query_mut_object_key() {
     );
     assert_eq!(
         v.query_mut().child("a").child("d").find().unwrap(),
-        &mut JsonValue::Object(HashMap::new()),
+        &mut JsonValue::Object(JsonMap::new()),
     );
     assert_eq!(
         v.query_mut().child("e").find().unwrap(),
-        &mut JsonValue::Object(HashMap::new()),
+        &mut JsonValue::Object(JsonMap::new()),
     );
 
     assert_eq!(
@@ -197,7 +196,7 @@ fn test_query_mut_object_key() {
 fn test_query_value_predicate() {
     let v: JsonValue = r#"[{"a": 0, "b": 1}, 0, 1, 2]"#.parse().unwrap();
     let a: &Vec<_> = v.get().unwrap();
-    let m: &HashMap<_, _> = a[0].get().unwrap();
+    let m: &JsonMap = a[0].get().unwrap();
 
     assert_eq!(v.query().child_by(|v| v.is_object()).get(), Some(m));
     assert_eq!(v.query().child_by(|v| v.is_number()).find(), Some(&a[1]));

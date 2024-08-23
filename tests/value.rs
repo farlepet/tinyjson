@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use tinyjson::*;
 
 const STR_OK: &str = r#"
@@ -130,9 +129,9 @@ fn test_get() {
 #[test]
 fn test_get_mut() {
     let mut v = STR_OK.parse::<JsonValue>().unwrap();
-    let m: &mut HashMap<_, _> = v.get_mut().unwrap();
+    let m: &mut JsonMap = v.get_mut().unwrap();
     m.clear();
-    let m: &HashMap<_, _> = v.get().unwrap();
+    let m: &JsonMap = v.get().unwrap();
     assert!(m.is_empty());
 }
 
@@ -156,10 +155,10 @@ fn test_try_into() {
         .unwrap();
     assert_eq!(&v, &[JsonValue::Null, JsonValue::Number(3.0)]);
 
-    let mut m = HashMap::new();
+    let mut m = JsonMap::new();
     m.insert("a".to_string(), JsonValue::Null);
     m.insert("b".to_string(), JsonValue::Boolean(true));
-    let v: HashMap<_, _> = JsonValue::Object(m.clone()).try_into().unwrap();
+    let v: JsonMap = JsonValue::Object(m.clone()).try_into().unwrap();
     assert_eq!(v, m);
 }
 
@@ -182,7 +181,7 @@ fn test_is_xxx() {
     assert!(Array(vec![]).is_array());
     assert!(!Number(1.0).is_array());
 
-    assert!(Object(HashMap::new()).is_object());
+    assert!(Object(JsonMap::new()).is_object());
     assert!(!Number(1.0).is_object());
 }
 
@@ -255,7 +254,7 @@ fn test_from() {
     assert_eq!(JsonValue::from(()), JsonValue::Null);
     let v = vec![JsonValue::Number(1.0), JsonValue::Boolean(false)];
     assert_eq!(JsonValue::from(v.clone()), JsonValue::Array(v));
-    let m: HashMap<_, _> = [
+    let m: JsonMap = [
         ("a".to_string(), JsonValue::Number(1.0)),
         ("b".to_string(), JsonValue::Boolean(false)),
     ]

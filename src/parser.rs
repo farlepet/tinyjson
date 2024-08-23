@@ -1,10 +1,9 @@
 use std::char;
-use std::collections::HashMap;
 use std::fmt;
 use std::iter::Peekable;
 use std::str::FromStr;
 
-use crate::JsonValue;
+use crate::{JsonValue, JsonMap};
 
 /// Parse error.
 ///
@@ -172,10 +171,10 @@ impl<I: Iterator<Item = char>> JsonParser<I> {
 
         if self.peek()? == '}' {
             self.consume().unwrap();
-            return Ok(JsonValue::Object(HashMap::new()));
+            return Ok(JsonValue::Object(JsonMap::new()));
         }
 
-        let mut m = HashMap::new();
+        let mut m = JsonMap::new();
         loop {
             let key = match self.parse_any()? {
                 JsonValue::String(s) => s,

@@ -1,6 +1,5 @@
-use std::collections::HashMap;
 use std::f64;
-use tinyjson::JsonValue;
+use tinyjson::{JsonMap, JsonValue};
 
 #[test]
 fn test_number() {
@@ -61,7 +60,7 @@ fn test_array() {
 
 #[test]
 fn test_object() {
-    let mut m = HashMap::new();
+    let mut m = JsonMap::new();
     m.insert("foo".to_string(), JsonValue::Number(1.0));
     m.insert("bar".to_string(), JsonValue::Boolean(false));
     m.insert("piyo".to_string(), JsonValue::Null);
@@ -72,7 +71,7 @@ fn test_object() {
     assert!(s.contains(r#""bar":false"#));
     assert!(s.contains(r#""piyo":null"#));
     assert!(s.ends_with('}'));
-    let v = JsonValue::Object(HashMap::new());
+    let v = JsonValue::Object(JsonMap::new());
     let s = v.stringify().unwrap();
     assert_eq!(&s, "{}");
 }
@@ -109,7 +108,7 @@ fn test_format_array() {
         JsonValue::Array(vec![
             JsonValue::Array(vec![
                 {
-                    let mut m = HashMap::new();
+                    let mut m = JsonMap::new();
                     m.insert("foo".to_string(), JsonValue::String("bar".to_string()));
                     JsonValue::Object(m)
                 },
@@ -146,7 +145,7 @@ fn test_format_array() {
 
 #[test]
 fn test_format_object() {
-    let mut m = HashMap::new();
+    let mut m = JsonMap::new();
     m.insert("foo".to_string(), JsonValue::Number(1.0));
     m.insert("bar".to_string(), JsonValue::Boolean(false));
     m.insert("piyo".to_string(), JsonValue::Null);
@@ -157,7 +156,7 @@ fn test_format_object() {
     assert!(s.contains(r#"  "bar": false"#));
     assert!(s.contains(r#"  "piyo": null"#));
     assert!(s.ends_with('}'));
-    let v = JsonValue::Object(HashMap::new());
+    let v = JsonValue::Object(JsonMap::new());
     let s = v.format().unwrap();
     assert_eq!(&s, "{}");
 }

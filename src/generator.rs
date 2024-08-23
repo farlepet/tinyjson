@@ -1,5 +1,4 @@
-use crate::JsonValue;
-use std::collections::HashMap;
+use crate::{JsonMap, JsonValue};
 use std::fmt;
 use std::io::{self, Write};
 
@@ -162,7 +161,7 @@ impl<'indent, W: Write> JsonGenerator<'indent, W> {
         self.out.write_all(b"]")
     }
 
-    fn encode_object(&mut self, m: &HashMap<String, JsonValue>) -> io::Result<()> {
+    fn encode_object(&mut self, m: &JsonMap) -> io::Result<()> {
         self.out.write_all(b"{")?;
         let mut first = true;
         for (k, v) in m {
@@ -219,7 +218,7 @@ impl<'indent, W: Write> JsonGenerator<'indent, W> {
 
     fn format_object(
         &mut self,
-        m: &HashMap<String, JsonValue>,
+        m: &JsonMap,
         indent: &str,
         level: usize,
     ) -> io::Result<()> {

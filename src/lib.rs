@@ -19,8 +19,7 @@
 //! Example:
 //!
 //! ```
-//! use tinyjson::JsonValue;
-//! use std::collections::HashMap;
+//! use tinyjson::{JsonMap, JsonValue};
 //! use std::convert::TryInto;
 //!
 //! let s = r#"
@@ -39,8 +38,8 @@
 //! let parsed: JsonValue = s.parse().unwrap();
 //!
 //! // Access to inner value represented with standard containers
-//! let object: &HashMap<_, _> = parsed.get().unwrap();
-//! println!("Parsed HashMap: {:?}", object);
+//! let object: &JsonMap = parsed.get().unwrap();
+//! println!("Parsed map: {:?}", object);
 //!
 //! // Generate JSON string
 //! println!("{}", parsed.stringify().unwrap());
@@ -52,11 +51,11 @@
 //! println!("Second element of \"arr\": {:?}", elem);
 //!
 //! // Convert to inner value represented with standard containers
-//! let object: HashMap<_, _> = parsed.try_into().unwrap();
-//! println!("Converted into HashMap: {:?}", object);
+//! let object: JsonMap = parsed.try_into().unwrap();
+//! println!("Converted into map: {:?}", object);
 //!
 //! // Create JSON values from standard containers
-//! let mut m = HashMap::new();
+//! let mut m = JsonMap::new();
 //! m.insert("foo".to_string(), true.into());
 //! let mut v = JsonValue::from(m);
 //!
@@ -68,14 +67,14 @@
 //!
 //! Any JSON value is represented with [`JsonValue`] enum. Each JSON types are mapped to Rust types as follows:
 //!
-//! | JSON    | Rust                         |
-//! |---------|------------------------------|
-//! | Number  | `f64`                        |
-//! | Boolean | `bool`                       |
-//! | String  | `String`                     |
-//! | Null    | `()`                         |
-//! | Array   | `Vec<JsonValue>`             |
-//! | Object  | `HashMap<String, JsonValue>` |
+//! | JSON    | Rust                                                          |
+//! |---------|---------------------------------------------------------------|
+//! | Number  | `f64`                                                         |
+//! | Boolean | `bool`                                                        |
+//! | String  | `String`                                                      |
+//! | Null    | `()`                                                          |
+//! | Array   | `Vec<JsonValue>`                                              |
+//! | Object  | `HashMap<String, JsonValue>` or `IndexMap<String, JsonValue>` |
 //!
 //! Flexible query APIs are available to access nested elements easily without panic. See [`JsonQuery`] and
 //! [`JsonQueryMut`] for more details.
@@ -92,6 +91,6 @@ mod parser;
 mod query;
 
 pub use generator::*;
-pub use json_value::{InnerAsRef, InnerAsRefMut, JsonValue, UnexpectedValue};
+pub use json_value::{InnerAsRef, InnerAsRefMut, JsonMap, JsonValue, UnexpectedValue};
 pub use parser::*;
 pub use query::{ChildIndex, JsonQuery, JsonQueryMut};
